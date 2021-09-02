@@ -29,7 +29,14 @@ void signal_handler(int signum)
 {
 	static char c = 0xFF;
 	static int bit = 0;
+	static int confirm = 1;
 
+	if (confirm)
+	{
+		ft_putstr_fd("\nConfirm reception!\n", 1);
+		ft_putstr_fd("START!\n\n", 1);
+		confirm = 0;
+	}
 	if (signum == SIGUSR1)
 	{
 		//ft_putchar_fd('1', 1);
