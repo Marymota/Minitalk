@@ -25,14 +25,21 @@
 			#9 	Use usleep() to suspend execution for microseconds intervals
 				so that signals are not lost.
 			#10 When message[i] has no character in it the program is stopped
-
+	SIGNAL AND MESSAGE CONFIRMATION (BONUS)
+			#13 When client recieves a SIGUSR1 signal sends "message sent"
+				#13.1	The "flag" in signal_handler blocks other signal
+						confirmations after the first;
+						Since the server send a confirmation signal every time
+						it recieves a signal...
+			#16 When client recieves a SIGUSR2 signal send "Message recieved"
+				#16.1	The "message recieved" confirmation (SIGUSR2 sent by the
+						server)is sent after the message is print by the server;
 */
 #include "minitalk.h"
 
-
-void signal_handler(int signum)
+void	signal_handler(int signum)
 {
-	static int flag = 1;
+	static int	flag = 1;
 
 	if (signum == SIGUSR1 && flag)
 	{
