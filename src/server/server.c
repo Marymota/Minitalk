@@ -30,6 +30,8 @@
 				#13.2	If we already have characters allocated we need to copy that string and give it 
 						two more characters for 'c' and 'null'
 			#14 When 'c' is not a character and 8 bits have been recieved the message string is printed;
+		*	printf() is not signal safe; Don't use it inside a signal handler.
+		**	
 		***	We keep the signal_handler() variables as static since we need to update them and keep track
 			of its values everytime we recieve a new signal
 */
@@ -43,12 +45,16 @@ char	*print_string(char *message)
 	return (NULL);
 }
 
-void	signal_handler(int signum)
+void	signal_handler(int signum, siginfo_t *info, void *context)
 {
 	static char	c = 0xFF;
 	static int	bit = 0;
+	static int	pid = 0;
 	static char	*message = 0;
 
+	(void)context;
+	if ((info)->si_pid)
+		pid = info->si_pid;
 	if (signum == SIGUSR1)
 		c |= 0x80 >> bit;
 	else if (signum == SIGUSR2)
@@ -56,24 +62,35 @@ void	signal_handler(int signum)
 	if (++bit == 8)
 	{
 		if (!c)
+		{
 			message = print_string(message);
+			if(kill(pid, SIGUSR2) == -1)
+				exit(EXIT_FAILURE);
+		}
 		else
 			message = ft_str_add_char(message, c);			
 		bit = 0;
 		c = 0xFF;
 	}
+	if(kill(pid, SIGUSR1) == -1)
+		exit(EXIT_FAILURE);
 }
 
 int	main(void)
 {
+	struct sigaction sig;
 	pid_t	pid;
 
+	sig.sa_flags = SA_SIGINFO;
+	sig.sa_sigaction = signal_handler;
+	sigaction(SIGUSR1, &sig, NULL);
+	sigaction(SIGUSR2, &sig, NULL);
+	//signal(SIGUSR1, signal_handler);
+	//signal(SIGUSR2, signal_handler);
 	pid = getpid();
 	ft_putstr_fd("PID: ", 1);
 	ft_putnbr_fd(pid, 1);
 	ft_putchar_fd('\n', 1);
-	signal(SIGUSR1, signal_handler);
-	signal(SIGUSR2, signal_handler);
 	while (1)
 		pause();
 }

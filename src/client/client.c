@@ -29,6 +29,24 @@
 */
 #include "minitalk.h"
 
+
+void signal_handler(int signum)
+{
+	static int flag = 1;
+
+	if (signum == SIGUSR1 && flag)
+	{
+		ft_putstr_fd("\nMessage sent ", 1);
+		flag = 0;
+	}
+	if (signum == SIGUSR2)
+	{
+		ft_putstr_fd("-> Message recieved \n", 1);
+		flag = 1;
+		exit(EXIT_SUCCESS);
+	}
+}
+
 void	send_bits(char *message, int pid)
 {
 	int	i;
@@ -68,7 +86,8 @@ int	main(int argc, char *argv[])
 		ft_putstr_fd("./client [PID] [STR]\n", 1);
 		exit(EXIT_FAILURE);
 	}
+	signal(SIGUSR1, signal_handler);
+	signal(SIGUSR2, signal_handler);
 	pid = ft_atoi(argv[1]);
 	send_bits(argv[2], pid);
-	return (0);
 }
